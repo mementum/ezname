@@ -27,7 +27,6 @@ import types
 import weakref
 
 import wx
-from wx.lib.pubsub import pub
 
 from configcls import MutableSequence
 from utils.doout import doout
@@ -60,6 +59,10 @@ class BindingAny(object):
     @property
     def config(self):
         return wx.Config.Get()
+
+    def rm(self, obj):
+        bindname = self.makebindname(obj)
+        self.config.DeleteEntry(bindname, True)
 
     def wr(self, bindname, value):
         assert doout(value)
@@ -135,7 +138,6 @@ class BindingAny(object):
             return self
 
         objbindname = self.makebindname(obj)
-
         try:
             return self.ncache[objbindname]
         except KeyError:
@@ -722,9 +724,6 @@ class BindingChoice(BindingWidget):
     @AutoCallback.items
     def OnItemsChange(self, value):
         assert doout(value)
-        # FIXME: A more complex policy is needed to ensure that if
-        # string x is selected it remains selected after we clear the
-        # combobox or if for example the previous
         self.widget.Clear()
         self.widget.SetItems(value)
 
@@ -733,7 +732,6 @@ class BindingChoice(BindingWidget):
         selection = 0 if strsel not in value else value.index(strsel)
 
         self.widget.SetSelection(selection)  # because we did a clear
-        # self._('selection', selection)  # update the selection
         self.stringselection = self.widget.GetStringSelection()
 
     @AutoCallback.stringselection
